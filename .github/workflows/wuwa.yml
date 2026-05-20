@@ -1,34 +1,28 @@
-name: WuWa News Scraper
+name: WuWa News Scraper Manual
 
 on:
-  # Te permite ejecutarlo manualmente desde la pestaña "Actions" en GitHub
+  # Habilita exclusivamente el botón "Run workflow" en la interfaz de GitHub
   workflow_dispatch:
-  # Se ejecuta automáticamente todos los días a las 00:00 UTC (opcional, puedes borrarlo si no lo quieres)
-  schedule:
-    - cron: '0 0 * * *'
 
 jobs:
   scrape-news:
-    # Usa la última versión disponible de Ubuntu Server
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Copia el código de tu repositorio en el servidor de GitHub
+      # 1. Copia el código de tu repositorio en el servidor de Ubuntu
       - name: Checkout del repositorio
         uses: actions/checkout@v4
 
-      # 2. Configura Python en su versión más estable de forma nativa
+      # 2. Configura Python en el servidor
       - name: Configurar Python
         uses: actions/setup-python@v5
-        with:
-          python-cache-dependency-path: '' # Solo lo necesario, sin configuraciones extra de caché
 
-      # 3. Instala EXCLUSIVAMENTE las librerías necesarias de scraping
-      - name: Instalar dependencias esenciales
+      # 3. Instala solo lo necesario para el scraping básico
+      - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
-      # 4. Ejecuta tu script de Python (asumiendo que se llama scraper.py)
-      - name: Ejecutar Web Scraper de Wuthering Waves
+      # 4. Ejecuta tu archivo específico wuwa.py
+      - name: Ejecutar Scraper
         run: python wuwa.py
