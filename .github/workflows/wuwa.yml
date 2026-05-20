@@ -1,28 +1,35 @@
 name: WuWa News Scraper Manual
 
 on:
-  # Habilita exclusivamente el botón "Run workflow" en la interfaz de GitHub
   workflow_dispatch:
+
+permissions:
+  contents: write # PERMISO CRUCIAL: Permite al script guardar el archivo .md en tu repositorio
 
 jobs:
   scrape-news:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Copia el código de tu repositorio en el servidor de Ubuntu
       - name: Checkout del repositorio
         uses: actions/checkout@v4
 
-      # 2. Configura Python en el servidor
       - name: Configurar Python
         uses: actions/setup-python@v5
 
-      # 3. Instala solo lo necesario para el scraping básico
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
-      # 4. Ejecuta tu archivo específico wuwa.py
+      # Ejecuta el script (este creará el archivo noticias_wuwa.md)
       - name: Ejecutar Scraper
         run: python wuwa.py
+
+      # Detecta si el archivo .md cambió y lo sube al repositorio de forma automática
+      - name: Guardar cambios en el repositorio
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add noticias_wuwa.md
+          git diff --quiet && git diff --staged --quiet || (git commit -m "📝 Actualizar novedades de Wuthering Waves [Automático]" && git push)
