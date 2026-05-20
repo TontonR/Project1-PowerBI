@@ -25,8 +25,6 @@ def resumir_contenido(contenido):
     return parrafo_1
 
 def intentar_api_epic():
-    """Ruta Principal: Obtiene las noticias estructuradas desde el catálogo de Epic Games."""
-    # Mantenido intacto por estabilidad
     url = "https://graphql.epicgames.com/graphql"
     headers = {"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
     
@@ -66,8 +64,6 @@ def intentar_api_epic():
         return None
 
 def intentar_rss_comunidad():
-    """Ruta de Respaldo: Si la API principal falla, extrae del feed de parches oficiales."""
-    # Mantenido intacto por estabilidad
     url = "https://api.rss2json.com/v1/api.json?rss_url=https://reddit.com/r/WutheringWaves/.rss"
     headers = {"User-Agent": "Mozilla/5.0"}
     
@@ -81,7 +77,7 @@ def intentar_rss_comunidad():
         for item in items:
             titulo = item.get("title", "")
             if any(k in titulo.lower() for k in ["patch", "update", "news", "event", "dev", "official", "1.", "2."]):
-                noticias_processed.append({
+                noticias_procesadas.append({
                     "titulo": titulo,
                     "fecha": item.get("pubDate", "Reciente")[:10],
                     "contenido": limpiar_html(item.get("content", ""))
@@ -92,50 +88,41 @@ def intentar_rss_comunidad():
         return None
 
 def pulir_titular(titulo):
-    """Mejora la redacción y formato visual de los titulares."""
-    if not titulo:
-        return "Noticia sin título"
-    
-    # Limpieza de textos basura comunes en APIs
+    if not titulo: return "Noticia sin título"
     titulo_limpio = re.sub(r'^(Anuncio Oficial|NEWS|UPDATE|PATCH NOTES|EVENTO):\s*', '', titulo, flags=re.IGNORECASE)
-    titulo_limpio = re.sub(r'\[.*?\]|\(.*?\)', '', titulo_limpio) # Quita corchetes molestos
-    
-    # Corregir exceso de espacios
+    titulo_limpio = re.sub(r'\[.*?\]|\(.*?\)', '', titulo_limpio)
     titulo_limpio = re.sub(r'\s+', ' ', titulo_limpio).strip()
-    
-    # Asegurar que empiece en mayúscula
     if titulo_limpio:
         titulo_limpio = titulo_limpio[0].upper() + titulo_limpio[1:]
-        
     return titulo_limpio
 
 def evaluar_y_mostrar():
-    # --- EJECUCIÓN DEL PROCESO (Sin Cambios) ---
     noticias = intentar_api_epic()
     
-    # --- TEST FINAL EVALUADOR (Sin Cambios) ---
-    if noticias and len(noticias) >= 3:
-        pass 
-    else:
+    if not (noticias and len(noticias) >= 3):
         noticias = intentar_rss_comunidad()
         if not noticias:
-            print("# 🚨 Error Crítico\nNo se pudo recuperar información de ninguna fuente.")
+            # Si todo falla por completo, generamos un reporte de error en el Markdown para que lo sepas
+            with open("noticias_wuwa.md", "w", encoding="utf-8") as f:
+                f.write("# 🚨 Error Crítico\nNo se pudo recuperar información de ninguna fuente en este intento.\n")
             return
 
-    # --- NUEVA SALIDA FORMATEADA EN MARKDOWN ---
-    print("# 🌊 Wuthering Waves — Últimas Novedades")
-    print("Reporte automático generado en formato Markdown.\n")
-    print("---")
-    
-    for idx, item in enumerate(noticias[:5], 1):
-        titulo_mejorado = pulir_titular(item['titulo'])
-        resumen = resumir_contenido(item['contenido'])
+    # --- ESCRITURA EN EL ARCHIVO MARKDOWN ---
+    with open("noticias_wuwa.md", "w", encoding="utf-8") as f:
+        f.write("# 🌊 Wuthering Waves — Últimas Novedades\n")
+        f.write("Reporte automático generado en formato Markdown dentro del repositorio.\n\n")
+        f.write("---\n\n")
         
-        # Estructura elegante usando Markdown estándar
-        print(f"## 📢 {idx}. {titulo_mejorado}")
-        print(f"> 📅 **Fecha de publicación:** `{item['fecha']}`")
-        print(f"\n{resumen}")
-        print("\n" + "—" * 20 + "\n")
+        for idx, item in enumerate(noticias[:5], 1):
+            titulo_mejorado = pulir_titular(item['titulo'])
+            resumen = resumir_contenido(item['contenido'])
+            
+            f.write(f"## 📢 {idx}. {titulo_mejorado}\n")
+            f.write(f"> 📅 **Fecha de publicación:** `{item['fecha']}`\n\n")
+            f.write(f"{resumen}\n\n")
+            f.write("---\n\n")
+            
+    print("✅ Archivo 'noticias_wuwa.md' creado y formateado correctamente.")
 
 if __name__ == "__main__":
     evaluar_y_mostrar()
