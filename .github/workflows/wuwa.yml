@@ -1,7 +1,9 @@
 name: WuWa News Scraper Manual
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # Esto permite activar el botón "Run workflow" manualmente desde la web
 
 permissions:
   contents: write # PERMISO CRUCIAL: Permite al script guardar el archivo .md en tu repositorio
